@@ -27,12 +27,17 @@ interface IProps {
 
 interface IState {
 	data: ICard[],
-	elementsAtPage: number,
-	numberPageToGo: number,
+	visibleData: ICard[],
 	albumsOptions: string[],
 	term: string,
 	modalUrl: string,
-	zoomed: boolean
+	zoomed: boolean,
+
+	elementsAtPage: number,
+	numberPageToGo: number,
+	allPagesArr: string[],
+	newArrPages: string[],
+	maxPages: number
 }
 
 class App extends Component<IProps, IState> {
@@ -40,12 +45,16 @@ class App extends Component<IProps, IState> {
 		super(props);
 		this.state = {
 			data: [],
+			visibleData: [],
 			elementsAtPage: 16,
 			numberPageToGo: 1,
 			albumsOptions: [],
-			term: "",
+			term: "All",
 			modalUrl: "",
-			zoomed: false
+			zoomed: false,
+			allPagesArr: [],
+			newArrPages: [],
+			maxPages: 35
 		}
 	}
 
@@ -63,22 +72,31 @@ class App extends Component<IProps, IState> {
 			this.setState({data});
 
 			this.getAlbumsOptions();
+
+			this.getData(this.state.data, this.state.term);
+			this.getAllPages(this.state.data);
+			this.getListPages(this.state.allPagesArr);
 		})
 	}
 
 	onUpdateSearch = (term: string) => {
-		this.setState({term, numberPageToGo: 1})
+		this.setState({term, numberPageToGo: 1});
+		this.getData(this.state.data, term);
 	}
 
-	getData = (data: ICard[], term: string): ICard[] => {
+	getData = (data: ICard[], term: string=""): void => {
 		let visibleData: ICard[] = [];
 
-		if(term !== "")
+		if(term !== "All" && term !== "")
 			visibleData = data.filter( (card: ICard) => card.albumId == +term)
+		else if(term == "All") {
+			visibleData = data;
+		}
 		else
 			visibleData = data;
 
-		return visibleData;
+		this.getAllPages(visibleData);
+		this.setState({visibleData});
 	}
 
 	onDelete = (id: number) => {
@@ -95,12 +113,15 @@ class App extends Component<IProps, IState> {
 			this.getAlbumsOptions();
 			}
 		)
-		
+		.then(() => {
+			this.getData(this.state.data, this.state.term);
+			}
+		)		
 	}
 
 	getAlbumsOptions = (): void => {
 		const {data} = this.state;
-		let numberAlbumsArr: string[] = [];
+		let numberAlbumsArr: string[] = ["All"];
 
 		data.forEach( (card: ICard) => {
 			let wasCoincidence: boolean = false;
@@ -139,9 +160,51 @@ class App extends Component<IProps, IState> {
 		this.setState({numberPageToGo});
 	}
 
+    getAllPages = (data: ICard[]): void => {
+        const {elementsAtPage} = this.state;
+
+        let countPages: number = data.length / elementsAtPage;
+        if(data.length % elementsAtPage > 0) countPages++;
+        let arrPagesStr: string[] = [];
+
+        for(let i=1; i<=countPages; i++) {
+            arrPagesStr.push(String(i));
+        }
+		
+		
+		this.getListPages(arrPagesStr);
+        this.setState({allPagesArr: arrPagesStr});
+    }
+
+	getListPages = (arrPagesStr: string[], maxPages: number = this.state.maxPages): void => {
+        let newArrPages: string[] = [];
+        
+
+        if(arrPagesStr.length>maxPages) {
+            newArrPages = arrPagesStr.filter( (number:string, index: number, array: string[]) => {
+                if(index<maxPages-5) return number;
+                if(index>=maxPages-5 && index<=array.length-4) return false
+                return number
+            })
+            newArrPages.splice(maxPages-5, 0, "past");
+            this.setState({newArrPages});
+        } else {
+			newArrPages=arrPagesStr;
+			this.setState({newArrPages});
+		}
+    }
+
+    onShowMorePages = () => {
+		this.getAllPages(this.state.visibleData); //обновление полного количества страниц
+	
+		const {newArrPages, allPagesArr, maxPages} = this.state;
+		
+		const new2 = allPagesArr.slice(+newArrPages[29]-4); //список страниц сдвигается правее
+		this.getListPages(new2);
+    }
+
 	render() {
-		const {data, albumsOptions, term, modalUrl, numberPageToGo, zoomed, elementsAtPage} = this.state;
-		const visibleData = this.getData(data, term);
+		const {data, albumsOptions, term, modalUrl, numberPageToGo, zoomed, elementsAtPage, newArrPages, visibleData} = this.state;
 		 
 	
 		return (
@@ -150,6 +213,7 @@ class App extends Component<IProps, IState> {
 
 				<Container>
 					<SearchPanel
+						term={term}
 						albumsOptions={albumsOptions} 
 						onUpdateSearch={this.onUpdateSearch}
 					/>
@@ -162,9 +226,10 @@ class App extends Component<IProps, IState> {
 						onZoomImage={this.onZoomImage}
 					/>
 
-					<ListPagesCards 
-						data={visibleData} 
+					<ListPagesCards
+						newArrPages={newArrPages} 
 						elementsAtPage={elementsAtPage}
+						onShowMorePages={this.onShowMorePages}
 						onChangePage={this.onChangePage}
 					/>
 				</Container>

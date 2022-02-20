@@ -1,57 +1,50 @@
 import React, { Children, Component } from "react";
 
 import { ICard } from "../../../App";
-
 import "./list-pages-cards.scss";
 
 interface IProp {
-    data: ICard[],
     elementsAtPage: number,
-    onChangePage: (numberPageToGo: number) => void
+    newArrPages: string[],
+    onChangePage: (numberPageToGo: number) => void,
+    onShowMorePages: () => void
 }
 
-class ListPagesCards extends Component<IProp> {
+interface IState {
+}
+
+class ListPagesCards extends Component<IProp, IState> {
     constructor(props: IProp) {
         super(props);
 
         this.state = {
-
         }
     }
 
-    getArrNumbers = (): string[] => {
-        const {data, elementsAtPage} = this.props;
-
-        const countPages: number = data.length / elementsAtPage;
-        let arrPagesStr: string[] = [];
-
-        for(let i=1; i<=countPages; i++) {
-            arrPagesStr.push(String(i));
-        }
-
-        return arrPagesStr;
-    }
-
-    onChangePage = (e: any) => {
+    onChangePage = (e: any): void => {
         this.props.onChangePage(+e.target.childNodes[0].data)
     }
 
     render() {
-        const {onChangePage} = this.props;
-        const arrPagesStr: string[] = this.getArrNumbers();
-        // const visibleListPages: string = 
+        const { newArrPages } = this.props;
 
         return (
             <footer className="list-pages">
                 <ul>
                     {
-                        arrPagesStr.map( (number: string) => {
+                        newArrPages.map( (item: string) => {
+                            if(item === "past")
+                                return (
+                                    <li key={item}>
+                                        <a onClick={this.props.onShowMorePages}>.....</a>
+                                    </li>
+                                )
                             return (
-                                <li key={number}>
-                                    <a onClick={this.onChangePage}>{number}</a>
+                                <li key={item}>
+                                    <a onClick={this.onChangePage}>{item}</a>
                                 </li>
                             )
-                        })
+                        })    
                     }
                 </ul>
             </footer>

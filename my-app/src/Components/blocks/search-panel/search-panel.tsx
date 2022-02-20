@@ -4,6 +4,7 @@ import { Construction, ConstructionOutlined } from "@mui/icons-material";
 
 interface IProps {
     albumsOptions: string[], 
+    term: string,
     onUpdateSearch: (term: string) => void
 } 
 
@@ -17,7 +18,7 @@ class SearchPanel extends Component<IProps, IState> {
         super(props);
 
         this.state = {
-            term: "",
+            term: this.props.term,
         }
     }
     
@@ -34,22 +35,14 @@ class SearchPanel extends Component<IProps, IState> {
         return (
             <Autocomplete
                 sx={{mb: "20px"}}
+                id="combo-box"
                 options={albumsOptions}
+                value={term}
                 fullWidth
-                isOptionEqualToValue={(options, value) => {
-                        // if(options.includes(value)) {
-                        //     console.log("includes");
-                        //     return true;
-                        // }
-                        // value="55";
-                        return false;
-                    }
-                }
                 renderInput = {(params: any) => 
                     <TextField {...params}
-                        value={term}
                         onChange={this.onUpdateSearch} 
-                        label="search" 
+                        label="search AlbumID" 
                         type="search"
                         variant="standard" />
                     } 
