@@ -18,14 +18,15 @@ class SearchPanel extends Component<IProps, IState> {
         super(props);
 
         this.state = {
-            term: this.props.term,
+            term: "All",
         }
     }
     
-    onUpdateSearch = (e: any) => {
-        const term: string = e.target.value;
+    onUpdateSearch = (e: any, value: string) => {
+        const term: string = value;
         this.setState({term});
         this.props.onUpdateSearch(term);
+        console.log(e);
     }
 
     render() {
@@ -35,13 +36,13 @@ class SearchPanel extends Component<IProps, IState> {
         return (
             <Autocomplete
                 sx={{mb: "20px"}}
-                id="combo-box"
                 options={albumsOptions}
                 value={term}
+                onInputChange={this.onUpdateSearch}
                 fullWidth
                 renderInput = {(params: any) => 
                     <TextField {...params}
-                        onChange={this.onUpdateSearch} 
+                        value={term}
                         label="search AlbumID" 
                         type="search"
                         variant="standard" />
