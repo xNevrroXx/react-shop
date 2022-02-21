@@ -27,9 +27,12 @@ class CardItem extends Component<IProp> {
                         onClick={onZoomImage} 
                     />
                 </div>
-                <h6 className="card__title">{card.title}</h6>
+                
+                <div className="card__wrapper-title">
+                    <h6 className="card__title">{card.title}</h6>
+                </div>
 
-                <div className="card__wrapper">
+                <div className="card__wrapper-lower">
                     <span className="card__description">
                         Album num: {card.albumId}
                     </span>

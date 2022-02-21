@@ -4,7 +4,10 @@ import { ShoppingBasket } from '@mui/icons-material';
 
 function Header() {
     return (
-        <AppBar position="static">
+        <AppBar 
+            position="static"
+            sx={{mb: "20px"}}
+        >
             <Toolbar>
                 <Typography 
                     variant='h6'

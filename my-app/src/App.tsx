@@ -8,8 +8,10 @@ import SearchPanel from './Components/blocks/search-panel/search-panel';
 import Cards from './Components/blocks/cards/cards';
 import ZoomedImageModal from './Components/blocks/zoomed-image/zoomed-image';
 import ListPagesCards from './Components/blocks/listPagesCards/list-pages-cards';
+import NumberPage from './Components/blocks/listPagesCards/number-page';
 
 import "./app.scss";
+import { rejects } from 'assert';
 
 export interface ICard {
 	albumId: number,
@@ -26,35 +28,54 @@ interface IProps {
 }
 
 interface IState {
-	data: ICard[],
-	visibleData: ICard[],
-	albumsOptions: string[],
-	term: string,
-	modalUrl: string,
-	zoomed: boolean,
-
-	elementsAtPage: number,
-	numberPageToGo: number,
-	allPagesArr: string[],
-	newArrPages: string[],
-	maxPages: number
+	data: {
+		data: ICard[],
+		visibleData: ICard[]
+	}
+	searchPanel: {
+		albumsOptions: string[],
+		term: string
+	}
+	zoomedImages: {
+		modalUrl: string,
+		zoomed: boolean,
+	}
+	listPages: {
+		allPagesArr: string[],
+		newArrPages: string[],
+		maxPages: number
+	}
+	pagesProperties: {
+		elementsAtPage: number,
+		numberPageToGo: number
+	}
 }
 
 class App extends Component<IProps, IState> {
-	constructor(props: any) {
+	constructor(props: IProps) {
 		super(props);
 		this.state = {
-			data: [],
-			visibleData: [],
-			elementsAtPage: 16,
-			numberPageToGo: 1,
-			albumsOptions: [],
-			term: "All",
-			modalUrl: "",
-			zoomed: false,
-			allPagesArr: [],
-			newArrPages: [],
-			maxPages: 35
+			data: {
+				data: [],
+				visibleData: []
+			},
+			searchPanel: {
+				albumsOptions: [],
+				term: "All"
+			},
+			zoomedImages: {
+				modalUrl: "",
+				zoomed: false
+			},
+			listPages: {
+				allPagesArr: [],
+				newArrPages: [],
+				maxPages: 35
+			},
+			pagesProperties: {
+				elementsAtPage: 16,
+				numberPageToGo: 1,
+			}
 		}
 	}
 
@@ -69,19 +90,36 @@ class App extends Component<IProps, IState> {
 
 			// 	return 0;
 			// })
-			this.setState({data});
+			this.setState({data: {
+				...this.state.data, 
+				data
+			}});
 
 			this.getAlbumsOptions();
-
-			this.getData(this.state.data, this.state.term);
-			this.getAllPages(this.state.data);
-			this.getListPages(this.state.allPagesArr);
+			this.getData(data, this.state.searchPanel.term);
+			this.getAllPages(data);
+			this.getListPages(this.state.listPages.allPagesArr);
 		})
 	}
 
 	onUpdateSearch = (term: string) => {
-		this.setState({term, numberPageToGo: 1});
-		this.getData(this.state.data, term);
+		new Promise((resolve) => {
+			resolve(
+				this.setState( {searchPanel: {
+					...this.state.searchPanel,
+					term
+				}, 
+				pagesProperties: {
+					...this.state.pagesProperties,
+					numberPageToGo: 1
+				}
+			}))	
+		})
+		.then( () => {
+			this.getData(this.state.data.data, term);
+		})
+		
+		
 	}
 
 	getData = (data: ICard[], term: string=""): void => {
@@ -96,15 +134,23 @@ class App extends Component<IProps, IState> {
 			visibleData = data;
 
 		this.getAllPages(visibleData);
-		this.setState({visibleData});
+
+		this.setState({data: {
+			...this.state.data,
+			visibleData
+			}
+		});
 	}
 
 	onDelete = (id: number) => {
-		new Promise((resolve, reject) => {
+		new Promise((resolve) => {
 			resolve(
 				this.setState( ({data}) => {
 					return {
-						data: data.filter(card => card.id !== id)
+						data: {
+							...this.state.data,
+							data: data.data.filter(card => card.id !== id)
+						}
 					}
 				})
 		 	)
@@ -114,13 +160,13 @@ class App extends Component<IProps, IState> {
 			}
 		)
 		.then(() => {
-			this.getData(this.state.data, this.state.term);
+			this.getData(this.state.data.data, this.state.searchPanel.term);
 			}
 		)		
 	}
 
 	getAlbumsOptions = (): void => {
-		const {data} = this.state;
+		const {data} = this.state.data;
 		let numberAlbumsArr: string[] = ["All"];
 
 		data.forEach( (card: ICard) => {
@@ -142,26 +188,40 @@ class App extends Component<IProps, IState> {
 		numberAlbumsArr.sort( (a: string, b: string) => {
 			return +a - +b;
 		}); //сортировка для упорядоченного выпадающего списка
-		this.setState({albumsOptions: numberAlbumsArr});
+
+		this.setState({searchPanel: {
+			...this.state.searchPanel,
+			albumsOptions: numberAlbumsArr
+			} 
+		});
 	}
 
 	onZoomImage = (url: string) => {
-		this.setState({
+		this.setState({zoomedImages: {
 			modalUrl: url,
 			zoomed: true
+			}
 		});
 	}
 
 	onCloseModal = (): void => {
-		this.setState({zoomed: false});
+		this.setState({zoomedImages: {
+			...this.state.zoomedImages,
+			zoomed: false
+			}
+		});
 	}
 
 	onChangePage = (numberPageToGo: number) => {
-		this.setState({numberPageToGo});
+		this.setState({pagesProperties: {
+			...this.state.pagesProperties,
+			numberPageToGo
+			}
+		});
 	}
 
     getAllPages = (data: ICard[]): void => {
-        const {elementsAtPage} = this.state;
+        const {elementsAtPage} = this.state.pagesProperties;
 
         let countPages: number = data.length / elementsAtPage;
         if(data.length % elementsAtPage > 0) countPages++;
@@ -170,15 +230,17 @@ class App extends Component<IProps, IState> {
         for(let i=1; i<=countPages; i++) {
             arrPagesStr.push(String(i));
         }
-		
-		
+
 		this.getListPages(arrPagesStr);
-        this.setState({allPagesArr: arrPagesStr});
+        this.setState({listPages: {
+			...this.state.listPages,
+			allPagesArr: arrPagesStr
+			}
+		});
     }
 
-	getListPages = (arrPagesStr: string[], maxPages: number = this.state.maxPages): void => {
+	getListPages = (arrPagesStr: string[], maxPages: number = this.state.listPages.maxPages): void => {
         let newArrPages: string[] = [];
-        
 
         if(arrPagesStr.length>maxPages) {
             newArrPages = arrPagesStr.filter( (number:string, index: number, array: string[]) => {
@@ -187,25 +249,41 @@ class App extends Component<IProps, IState> {
                 return number
             })
             newArrPages.splice(maxPages-5, 0, "past");
-            this.setState({newArrPages});
+			
+            this.setState({listPages: {
+				...this.state.listPages,
+				newArrPages
+				}
+			});
+
         } else {
 			newArrPages=arrPagesStr;
-			this.setState({newArrPages});
+			
+			this.setState({listPages: {
+				...this.state.listPages,
+				newArrPages
+				}
+			});
 		}
+		
+		console.log(this.state.listPages.newArrPages)
     }
 
     onShowMorePages = () => {
-		this.getAllPages(this.state.visibleData); //обновление полного количества страниц
+		this.getAllPages(this.state.data.visibleData); //обновление полного количества страниц
 	
-		const {newArrPages, allPagesArr, maxPages} = this.state;
+		const {newArrPages, allPagesArr, maxPages} = this.state.listPages;
 		
 		const new2 = allPagesArr.slice(+newArrPages[29]-4); //список страниц сдвигается правее
 		this.getListPages(new2);
     }
 
 	render() {
-		const {data, albumsOptions, term, modalUrl, numberPageToGo, zoomed, elementsAtPage, newArrPages, visibleData} = this.state;
-		 
+		const {modalUrl, zoomed} = this.state.zoomedImages;
+		const {albumsOptions, term} = this.state.searchPanel;
+		const {data, visibleData} = this.state.data;
+		const {numberPageToGo, elementsAtPage} = this.state.pagesProperties;
+		const {newArrPages} = this.state.listPages;
 	
 		return (
 			<main className='App'>
@@ -233,6 +311,8 @@ class App extends Component<IProps, IState> {
 						onChangePage={this.onChangePage}
 					/>
 				</Container>
+
+				<NumberPage numberPage={numberPageToGo}/>
 
 				<ZoomedImageModal
 					onClose={this.onCloseModal} 

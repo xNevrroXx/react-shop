@@ -1,0 +1,14 @@
+.number-page {
+    position: fixed;
+    right: 120px;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 300px;
+    width: 350px;
+    &__count {
+        font-size: 80px;
+        text-align: center;
+        display: block;
+        transform: rotate(90deg);
+    }
+}

@@ -1,18 +1,33 @@
 .card {
     display: flex;
-    flex-direction: column;
+    border-radius: 10px;
     justify-content: space-between;
+    flex-direction: column;
     align-items: center;
     border: 1px solid rgba($color: #000000, $alpha: 0.5);
 
-    &__wrapper {
+    &__wrapper-lower {
         width: 100%;
+    }
+    &__wrapper-title {
+        height: 40px;
+        margin-bottom: 10px;
     }
     &__wrapper-image {
+        height: 280px;
         width: 100%;
+        
+        margin-bottom: 10px;
     }
     &__image {
+        border-radius: 10px;
+        display: block;
+        margin: 0 auto; 
         width: 100%;
+        transition: all 0.3s;
+        &:hover {
+            animation: bloom ease-in-out .75s forwards;
+        }
     }
     span {
         display: block;
@@ -21,3 +36,16 @@
         margin-bottom: 5px;
     }
 }
+
+
+  @keyframes bloom {
+      0% {
+          filter: grayscale(.8);
+      }
+      40% {
+          filter: grayscale(.5);    
+      }
+      100% {
+          filter: grayscale(0);
+      }
+  }

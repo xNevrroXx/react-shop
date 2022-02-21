@@ -26,7 +26,6 @@ class SearchPanel extends Component<IProps, IState> {
         const term: string = value;
         this.setState({term});
         this.props.onUpdateSearch(term);
-        console.log(e);
     }
 
     render() {

@@ -30,23 +30,25 @@ class ListPagesCards extends Component<IProp, IState> {
 
         return (
             <footer className="list-pages">
-                <ul>
-                    {
-                        newArrPages.map( (item: string) => {
-                            if(item === "past")
+                <nav>
+                    <ul>
+                        {
+                            newArrPages.map( (item: string) => {
+                                if(item === "past")
+                                    return (
+                                        <li key={item}>
+                                            <a onClick={this.props.onShowMorePages}>.....</a>
+                                        </li>
+                                    )
                                 return (
                                     <li key={item}>
-                                        <a onClick={this.props.onShowMorePages}>.....</a>
+                                        <a onClick={this.onChangePage}>{item}</a>
                                     </li>
                                 )
-                            return (
-                                <li key={item}>
-                                    <a onClick={this.onChangePage}>{item}</a>
-                                </li>
-                            )
-                        })    
-                    }
-                </ul>
+                            })    
+                        }
+                    </ul>
+                </nav>
             </footer>
         )
     }
